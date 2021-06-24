@@ -20,6 +20,11 @@ int mines, closedCells;
 
 Tcell map[mapW][mapH];
 
+BOOL hasCell(int x, int y)
+{
+    return (x>=0) && (y>=0) && (x < mapW) && (y < mapH);
+}
+
 void create()
 {
     srand(time(NULL));
@@ -28,14 +33,44 @@ void create()
     mines = 20;
     closedCells = mapW*mapH;
 
-    for (int i=0l; i<mines; i++) // placing mines in random x
+    for (int i=0l; i<mines; i++) // Placing mines in random x
     {
         int x = rand() % mapW;
         int y = rand() % mapH;
 
         if (map[x][y].hasMine) i--;
-        else map[x][y].hasMine = TRUE;
+        else
+        {
+            map[x][y].hasMine = TRUE;
+
+            for (int dx = -1; dx < 2; dx++)
+            for (int dy = -1; dy < 2; dy++)
+                map[x+dx][y+dy].minesAround += 1;
+        }
     }
+}
+
+void drawNumber(int a) // Uses segment drawing
+{
+    void createLine(float x1, float y1, float x2, float y2)
+    {
+        glVertex2f(x1,y1);
+        glVertex2f(x2,y2);
+    }
+
+    glLineWidth(3);
+    glColor3f(1,1,0);
+    glBegin(GL_LINES);
+        if ((a!=1) && (a!=4)) createLine(0.3, 0.85, 0.7, 0.85);
+        if ((a!=0) && (a!=1) && (a!=7)) createLine(0.3, 0.5, 0.7, 0.5);
+        if ((a!=1) && (a!=4) && (a!=7)) createLine(0.3, 0.15, 0.7, 0.15);
+
+        if ((a!=5) && (a!=6)) createLine(0.7,0.5,0.7,0.85);
+        if (a!=2) createLine(0.7,0.5,0.7,0.15);
+
+        if ((a!=1) && (a!=2) && (a!=3) && (a!=7)) createLine(0.3, 0.5,0.3, 0.85);
+        if ((a==0) || (a==2) || (a==6) || (a==8)) createLine(0.3, 0.5, 0.3, 0.15);
+    glEnd();
 }
 
 void drawMine()
@@ -71,8 +106,12 @@ void drawGame()
             glPushMatrix();
             glTranslatef(j,i,0);
             drawCell();
+
             if (map[j][i].hasMine)
-            drawMine();
+                drawMine();
+            else if (map[j][i].minesAround > 0)
+                drawNumber(map[j][i].minesAround);
+
             glPopMatrix();
         }
     }
