@@ -18,6 +18,8 @@ typedef struct
 
 int mines, closedCells;
 
+BOOL game_end;
+
 Tcell map[mapW][mapH];
 
 BOOL hasCell(int x, int y)
@@ -38,8 +40,8 @@ void create()
 {
     srand(time(NULL));
     memset(map,0,sizeof(map));
-
-    mines = 20;
+    game_end = FALSE;
+    mines = 1;
     closedCells = mapW*mapH;
 
     for (int i=0l; i<mines; i++) // Placing mines in random x
@@ -80,6 +82,26 @@ void drawNumber(int a) // Uses segment drawing
         if ((a!=1) && (a!=2) && (a!=3) && (a!=7)) createLine(0.3, 0.5,0.3, 0.85);
         if ((a==0) || (a==2) || (a==6) || (a==8)) createLine(0.3, 0.5, 0.3, 0.15);
     glEnd();
+}
+
+void openCell(int x, int y)
+{
+    if (!hasCell(x,y) || map[x][y].isOpened) return;
+    map[x][y].isOpened = TRUE;
+    closedCells--;
+    if (map[x][y].minesAround == 0)
+    {
+        for (int dx = -1; dx<2; dx++)
+        for (int dy = -1; dy<2; dy++)
+            openCell(x+dx,y+dy);
+    } else if (map[x][y].hasMine)
+    {
+        game_end = TRUE;
+        for (int i = 0; i<mapH; i++)
+        for (int j = 0; j<mapW; j++)
+            map[j][i].isOpened = TRUE;
+
+    }
 }
 
 void drawFlag()
@@ -128,6 +150,8 @@ void drawOpenedCell()
 
 void drawGame()
 {
+    if (mines == closedCells) create();
+
     glLoadIdentity();
     glScalef(2.0/mapW, 2.0/mapH, 1);
     glTranslatef(-mapW*0.5, -mapH*0.5,0);
@@ -270,23 +294,29 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         case WM_LBUTTONDOWN:
         {
-            POINTFLOAT pf;
-            unprojectCords(hwnd, LOWORD(lParam), HIWORD(lParam),&pf.x, &pf.y);
-            int x = (int)pf.x;
-            int y = (int)pf.y;
+            if (game_end) create();
+            else
+            {
+                POINTFLOAT pf;
+                unprojectCords(hwnd, LOWORD(lParam), HIWORD(lParam),&pf.x, &pf.y);
+                int x = (int)pf.x;
+                int y = (int)pf.y;
 
-            if (hasCell(x,y) && !map[x][y].hasFlag) map[x][y].isOpened = TRUE;
+                if (hasCell(x,y) && !map[x][y].hasFlag) openCell(x,y);
+            }
         }
         break;
 
         case WM_RBUTTONDOWN:
         {
+
             POINTFLOAT pf;
             unprojectCords(hwnd, LOWORD(lParam), HIWORD(lParam),&pf.x, &pf.y);
             int x = (int)pf.x;
             int y = (int)pf.y;
 
             if (hasCell(x,y)) map[x][y].hasFlag = !map[x][y].hasFlag;
+
         }
         break;
 
