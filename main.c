@@ -12,7 +12,7 @@ typedef struct
 {
     BOOL hasMine;
     BOOL hasFlag;
-    BOOL isOpen;
+    BOOL isOpened;
     int minesAround; // mines in cells nearby
 } Tcell;
 
@@ -23,6 +23,15 @@ Tcell map[mapW][mapH];
 BOOL hasCell(int x, int y)
 {
     return (x>=0) && (y>=0) && (x < mapW) && (y < mapH);
+}
+
+void unprojectCords(HWND hwnd, int x, int y, float *ox, float *oy)
+{
+    RECT rct;
+    GetClientRect(hwnd, &rct);
+    *ox = x / (float) rct.right * mapW;
+    *oy = mapH - y / (float) rct.bottom * mapH;
+
 }
 
 void create()
@@ -93,6 +102,16 @@ void drawCell()
     glEnd();
 }
 
+void drawOpenedCell()
+{
+    glBegin(GL_TRIANGLE_STRIP);
+        glColor3f(0.3,0.7,0.3); glVertex2f(0,1);
+        glColor3f(0.3,0.6,0.3); glVertex2f(1,1); glVertex2f(0,0);
+        glColor3f(0.3,0.5,0.3); glVertex2f(1,0);
+    glEnd();
+
+}
+
 void drawGame()
 {
     glLoadIdentity();
@@ -105,20 +124,20 @@ void drawGame()
         {
             glPushMatrix();
             glTranslatef(j,i,0);
-            drawCell();
 
-            if (map[j][i].hasMine)
-                drawMine();
-            else if (map[j][i].minesAround > 0)
-                drawNumber(map[j][i].minesAround);
+            if (map[j][i].isOpened)
+            {
+                drawOpenedCell();
+                if (map[j][i].hasMine)
+                    drawMine();
+                else if (map[j][i].minesAround > 0)
+                    drawNumber(map[j][i].minesAround);
+
+            } else drawCell();
 
             glPopMatrix();
         }
     }
-
-    drawCell();
-    drawMine();
-
 }
 
 void render(HDC hDC,int* theta)
@@ -230,6 +249,17 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         case WM_DESTROY:
             return 0;
+
+        case WM_LBUTTONDOWN:
+        {
+            POINTFLOAT pf;
+            unprojectCords(hwnd, LOWORD(lParam), HIWORD(lParam),&pf.x, &pf.y);
+            int x = (int)pf.x;
+            int y = (int)pf.y;
+
+            if (hasCell(x,y)) map[x][y].isOpened = TRUE;
+        }
+        break;
 
         case WM_KEYDOWN:
         {
