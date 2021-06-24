@@ -82,6 +82,21 @@ void drawNumber(int a) // Uses segment drawing
     glEnd();
 }
 
+void drawFlag()
+{
+    glBegin(GL_TRIANGLES);
+        glColor3f(1,0,0);
+        glVertex2f(0.25, 0.85);
+        glVertex2f(0.85, 0.6);
+        glVertex2f(0.25, 0.35);
+    glEnd();
+    glBegin(GL_LINES);
+        glColor3f(0,0,0);
+        glVertex2f(0.25, 0.85);
+        glVertex2f(0.25,0.15);
+    glEnd();
+}
+
 void drawMine()
 {
     glBegin(GL_TRIANGLE_FAN);
@@ -109,7 +124,6 @@ void drawOpenedCell()
         glColor3f(0.3,0.6,0.3); glVertex2f(1,1); glVertex2f(0,0);
         glColor3f(0.3,0.5,0.3); glVertex2f(1,0);
     glEnd();
-
 }
 
 void drawGame()
@@ -133,7 +147,11 @@ void drawGame()
                 else if (map[j][i].minesAround > 0)
                     drawNumber(map[j][i].minesAround);
 
-            } else drawCell();
+            } else
+            {
+                drawCell();
+                if (map[j][i].hasFlag) drawFlag();
+            }
 
             glPopMatrix();
         }
@@ -257,9 +275,21 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             int x = (int)pf.x;
             int y = (int)pf.y;
 
-            if (hasCell(x,y)) map[x][y].isOpened = TRUE;
+            if (hasCell(x,y) && !map[x][y].hasFlag) map[x][y].isOpened = TRUE;
         }
         break;
+
+        case WM_RBUTTONDOWN:
+        {
+            POINTFLOAT pf;
+            unprojectCords(hwnd, LOWORD(lParam), HIWORD(lParam),&pf.x, &pf.y);
+            int x = (int)pf.x;
+            int y = (int)pf.y;
+
+            if (hasCell(x,y)) map[x][y].hasFlag = !map[x][y].hasFlag;
+        }
+        break;
+
 
         case WM_KEYDOWN:
         {
