@@ -5,8 +5,8 @@ LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
 void EnableOpenGL(HWND hwnd, HDC*, HGLRC*);
 void DisableOpenGL(HWND, HDC, HGLRC);
 
-#define mapW 10
-#define mapH 10
+#define mapW 25
+#define mapH 25
 
 typedef struct
 {
@@ -41,7 +41,7 @@ void create()
     srand(time(NULL));
     memset(map,0,sizeof(map));
     game_end = FALSE;
-    mines = 1;
+    mines = 90;
     closedCells = mapW*mapH;
 
     for (int i=0l; i<mines; i++) // Placing mines in random x
@@ -229,7 +229,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
     /* create main window */
     hwnd = CreateWindowEx(0,
                           "GLSample",
-                          "OpenGL Sample",
+                          "Minesweep ;  ]",
                           WS_OVERLAPPEDWINDOW,
                           CW_USEDEFAULT,
                           CW_USEDEFAULT,
