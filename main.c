@@ -20,7 +20,7 @@ int mines, closedCells;
 
 Tcell map[mapW][mapH];
 
-void start_game()
+void create()
 {
     srand(time(NULL));
     memset(map,0,sizeof(map));
@@ -38,23 +38,39 @@ void start_game()
     }
 }
 
+void drawMine()
+{
+    glBegin(GL_TRIANGLE_FAN);
+        glColor3f(0,0,0);
+        glVertex2f(0.3,0.3);
+        glVertex2f(0.7,0.3);
+        glVertex2f(0.7,0.7);
+        glVertex2f(0.3,0.7);
+    glEnd();
+}
+
+void drawField()
+{
+    glBegin(GL_TRIANGLE_STRIP);
+        glColor3f(0.8,0.8,0.8); glVertex2f(0,1);
+        glColor3f(0.7,0.7,0.7); glVertex2f(1,1); glVertex2f(0,0);
+        glColor3f(0.6,0.6,0.6); glVertex2f(1,0);
+    glEnd();
+}
+
+void drawGame()
+{
+    glLoadIdentity();
+    drawField();
+    drawMine();
+}
+
 void render(HDC hDC,int* theta)
 {
-            glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+            glClearColor(0,0,0,0);
             glClear(GL_COLOR_BUFFER_BIT);
 
-            glPushMatrix();
-            glRotatef(*theta, 0.0f, 0.0f, 1.0f);
-
-            glBegin(GL_TRIANGLES);
-
-                glColor3f(1.0f, 0.0f, 0.0f);   glVertex2f(0.0f,   1.0f);
-                glColor3f(0.0f, 1.0f, 0.0f);   glVertex2f(0.87f,  -0.5f);
-                glColor3f(0.0f, 0.0f, 1.0f);   glVertex2f(-0.87f, -0.5f);
-
-            glEnd();
-
-            glPopMatrix();
+            drawGame();
 
             SwapBuffers(hDC);
 
@@ -112,7 +128,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
     /* enable OpenGL for the window */
     EnableOpenGL(hwnd, &hDC, &hRC);
 
-    start_game();
+    create();
 
     /* program main loop */
     while (!bQuit)
