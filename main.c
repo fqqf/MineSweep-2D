@@ -49,7 +49,7 @@ void drawMine()
     glEnd();
 }
 
-void drawField()
+void drawCell()
 {
     glBegin(GL_TRIANGLE_STRIP);
         glColor3f(0.8,0.8,0.8); glVertex2f(0,1);
@@ -61,8 +61,25 @@ void drawField()
 void drawGame()
 {
     glLoadIdentity();
-    drawField();
+    glScalef(2.0/mapW, 2.0/mapH, 1);
+    glTranslatef(-mapW*0.5, -mapH*0.5,0);
+
+    for (int i=0; i< mapH; i++)
+    {
+        for (int j=0; j< mapW; j++)
+        {
+            glPushMatrix();
+            glTranslatef(j,i,0);
+            drawCell();
+            if (map[j][i].hasMine)
+            drawMine();
+            glPopMatrix();
+        }
+    }
+
+    drawCell();
     drawMine();
+
 }
 
 void render(HDC hDC,int* theta)
